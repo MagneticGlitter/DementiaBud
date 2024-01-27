@@ -85,7 +85,7 @@ export default function Landing() {
             <div className="grid grid-cols-1 gap-4lg:col-span-2 overflow-hidden rounded-lg bg-white shadow p-6 h-[75vh] no-scrollbar">
                 <section aria-labelledby="section-2-title">
                   {/** Chatbot BEGINS HERE, MARSHAL */}
-                  {/* <Chatbot/> */}
+                  <Chatbot/>
                 </section>
             </div>
           </div>
