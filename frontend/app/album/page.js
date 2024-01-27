@@ -3,6 +3,7 @@ import Chatbot from "./Chatbot"
 import Link from "next/link";
 import { Fragment } from "react";
 import { Menu, Popover, Transition  } from "@headlessui/react";
+import Album from "./Album";
 
 
 export default function Landing() {
@@ -77,7 +78,7 @@ export default function Landing() {
               <div className="grid grid-cols-1 gap-4 lg:col-span-2 overflow-hidden rounded-lg bg-white shadow p-6 h-[75vh] no-scrollbar">
                   <section aria-labelledby="section-1-title">
                     {/** ALBUM BEGINS HERE, CAESAR */}
-
+                    <Album/>
                   </section>
               </div>
 
