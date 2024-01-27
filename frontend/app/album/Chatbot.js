@@ -1,15 +1,14 @@
-import { useState, useEffect, Fragment } from "react";
-import {botInteract, botUpdate} from "./voiceflowController";
+import { useState, useEffect } from "react";
+import {botDeleteUser, botUpdate} from "./voiceflowController";
 import useSpeechRecognition from "./speech";
 
 const Chatbot = () => {
   const [inputValue, setInputValue] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
-
+  const [bgInfo, setBgInfo] = useState("I have a family of 4");
   const {
       text,
       startListening,
-      resetText,
       } = useSpeechRecognition();
 
   const handleKeyDown = (event) => {
@@ -22,35 +21,24 @@ const Chatbot = () => {
 
   useEffect(() => {
       // Initialize the interaction when the component mounts
+      const initInteraction = async () => {
+        await botDeleteUser()
+        await handleInteract(bgInfo)
+      }
       if (count) {
-        initializeInteraction();
+        initInteraction()
       } 
       count--;
   }, []);
 
-  const initializeInteraction = async () => {
-      try {
-      const initialMessages = await botInteract();
-      // Use Promise.all to wait for all promises to resolve
-      await Promise.all(initialMessages.map(async (message) => {
-          // Process each message and add it to chatMessages
-          setChatMessages((prevMessages) => [
-          ...prevMessages,
-          { type: "bot", text: message }
-          ]);
-      }));
-      } catch (error) {
-      console.error("Error initializing interaction:", error);
-      }
-  };
-
+  
   const handleSendMessage = async () => {
       if (inputValue.trim() !== ""){
           setChatMessages((prevChatMessages) => [
             ...prevChatMessages,
             { type: "user", text: inputValue },
           ]) 
-          handleAll(inputValue)
+          handleInteract(inputValue)
           setInputValue("");
       }
   };
@@ -60,15 +48,19 @@ const Chatbot = () => {
   }
 
 
-  const handleAll = async (input) => {
+  const handleInteract = async (input) => {
     try {
       // Send user input and get the bot's response
       const list = await botUpdate(input);
+      console.log(input)
+      console.log(list)
       // Update state based on previous state using the functional form
+      // const indicator = list[list.length-1].charAt(list[list.length-1].length-1)
+      // console.log(indicator)
       if (list){
         setChatMessages((prevChatMessages) => [
           ...prevChatMessages,
-          ...list.map((message) => ({ type: "bot", text: message.slice(0,-1) })),
+          ...list.map((message) => ({ type: "bot", text: message })),
         ]);
       }
     } catch (error) {
