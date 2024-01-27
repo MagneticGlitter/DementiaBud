@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 
 let recognition = null;
-if ("webkitSpeechRecognition" in window) {
-  recognition = new webkitSpeechRecognition();
-  recognition.continuous = true;
-  recognition.lang = "en-US";
+if (typeof webkitSpeechRecognition !== 'undefined') {
+    recognition = new webkitSpeechRecognition();
+    recognition.continuous = true;
+    recognition.lang = "en-US";
+} else {
+    // Handle the case when webkitSpeechRecognition is not available
+    console.error('Speech recognition not supported in this browser.');
 }
 
 const useSpeechRecognition = () => {
