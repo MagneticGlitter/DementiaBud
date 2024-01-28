@@ -100,7 +100,7 @@ const Chatbot = (prop) => {
           { type: "bot", text: modified.slice(0,-1) }
         ]);
           
-      } else {
+      } else if (list.length == 1) {
         setChatMessages((prevChatMessages) => [
           ...prevChatMessages,
           { type: "bot", text: list[0].slice(0,-1) }
