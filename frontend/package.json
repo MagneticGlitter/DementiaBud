@@ -15,6 +15,7 @@
     "@headlessui/react": "^1.7.18",
     "@mui/material": "^5.15.6",
     "dotenv": "^16.4.1",
+    "@supabase/supabase-js": "^2.39.3",
     "next": "14.1.0",
     "next-cloudinary": "^5.20.0",
     "react": "^18",

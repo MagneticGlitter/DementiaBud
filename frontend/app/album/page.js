@@ -1,14 +1,53 @@
 "use client"
 import Chatbot from "./Chatbot"
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Menu, Popover, Transition  } from "@headlessui/react";
 import Album from "./Album";
 import "./navbar.css"
 import Image from 'next/image'
 
+const { createClient } = require('@supabase/supabase-js');
+// Replace these with your actual Supabase credentials
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPA_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPA_KEY;
+// Create a Supabase client
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 
 export default function Landing() {
+  const [rows, setRows] = useState([""]);
+  const [totalSummary, setTotalSummary] = useState("");
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('memories')
+                .select();
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            if (data) {
+                setRows(data);
+                setLoading(false);
+            }
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    }
+
+    fetchData();
+}, []);
+
+
+
   return (
       // <div>Hello from landing!</div>
       <>
@@ -34,7 +73,7 @@ export default function Landing() {
                         <Menu.Button className="relative flex rounded-full bg-white text-sm ring-2 ring-white ring-opacity-20 focus:outline-none focus:ring-opacity-100">
                           <span className="absolute -inset-1.5" />
                           <span className="sr-only">Open user menu</span>
-                          <img className="h-12 w-12 rounded-full" src="/user.png" />
+                          <img className="h-12 w-12 rounded-full" src="/icon.jpg" />
                         </Menu.Button>
                       </div>
                       <Transition
@@ -87,7 +126,9 @@ export default function Landing() {
               <div className="grid grid-cols-1 gap-4 lg:col-span-2 overflow-hidden rounded-lg bg-white shadow p-6 h-full no-scrollbar">
                   <section aria-labelledby="section-1-title">
                     {/** ALBUM BEGINS HERE, CAESAR */}
-                    <Album/>
+                    { !loading &&
+                      <Album data={rows}/>
+                    }
                   </section>
               </div>
 
@@ -95,7 +136,9 @@ export default function Landing() {
             <div className="grid grid-cols-1 gap-4lg:col-span-2 overflow-hidden rounded-lg bg-white shadow p-6 h-[75vh] no-scrollbar">
                 <section aria-labelledby="section-2-title">
                   {/** Chatbot BEGINS HERE, MARSHAL */}
-                  <Chatbot/>
+                  { !loading &&
+                      <Chatbot data={rows}/>
+                    }
                 </section>
             </div>
           </div>
