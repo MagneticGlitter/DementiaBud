@@ -65,7 +65,6 @@ const botUpdate = async (userInput) => {
         list.push(responseData[i].payload.message)
       }
     }
-    
     return list;
   } catch (error) {
     console.error('Error updating:', error.message || error);

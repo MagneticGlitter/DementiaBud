@@ -11,27 +11,8 @@ const Chatbot = (prop) => {
     "accomplishment": '🏆',
   };
   
-  useEffect(() => {
-    const fetchData = async () => {
-        const {data, error} = await supabase
-        .from('memories').select('summary');
-        if (error) {
-            console.log(error)
-        }
-        if (data){
-            // console.log(data)
-            setRows(data)
-        }
-    }
-
-    fetchData()
-  }, [])
-  
-  
-  const [rows, setRows] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
-  const [bgInfo, setBgInfo] = useState(rows.join(', '));     // TODO: setBgInfo from using a fetch
   const [intent, setIntent] = useState(0);
   const {
       text,
@@ -56,10 +37,11 @@ const Chatbot = (prop) => {
 
   const initChatbot = async () => {
     // fetch for botInit
-
+    const summaryString = prop.data.map(element => element.summary).join(", ");
+    console.log(summaryString)
+    console.log("================================");
     const mssg1 = await botInit();
-    const mssg2 = await botUpdate(bgInfo)
-  
+    const mssg2 = await botUpdate(summaryString)
     setChatMessages((prevChatMessages) => [
       ...prevChatMessages,
       { type: "bot", text: mssg1 },
@@ -88,7 +70,6 @@ const Chatbot = (prop) => {
     
     if (indicator === "*"){
       setIntent(1)
-      console.log(prop.data)
     }
     if (indicator === "$") {
       setIntent(2)
@@ -101,7 +82,7 @@ const Chatbot = (prop) => {
       setIntent(0)
       // Send user input and get the bot's response
       const list = await botUpdate(input);
-      if (list.length > 1) {
+      if (list.length == 3) {
         const modified = list[1].replace('2', prop.data[i].summary)
         i++;
         setChatMessages((prevChatMessages) => [
@@ -110,6 +91,15 @@ const Chatbot = (prop) => {
           { type: "bot", text: modified.slice(0,-1) },
           { type: "bot", text: list[2].slice(0,-1) }
         ]);
+      } else if (list.length == 2) {
+        const modified = list[1].replace('2', prop.data[i].summary)
+        i++;
+        setChatMessages((prevChatMessages) => [
+          ...prevChatMessages,
+          { type: "bot", text: list[0].slice(0,-1) },
+          { type: "bot", text: modified.slice(0,-1) }
+        ]);
+          
       } else {
         setChatMessages((prevChatMessages) => [
           ...prevChatMessages,
@@ -126,9 +116,8 @@ const Chatbot = (prop) => {
     }
   }
 
-  const emptyButtons = () => {
-    setIntent(0)
-    botUpdate("yes")
+  const emptyButtons = async () => {
+    handleInteract("yes")
   }
 
   return (

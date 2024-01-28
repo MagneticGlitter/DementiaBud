@@ -14,22 +14,36 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 
 export default function Landing() {
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState([""]);
+  const [totalSummary, setTotalSummary] = useState("");
+
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-        const {data, error} = await supabase
-        .from('memories').select();
-        if (error) {
-            console.log(error)
-        }
-        if (data){
-            setRows(data)
+        try {
+            const { data, error } = await supabase
+                .from('memories')
+                .select();
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            if (data) {
+                setRows(data);
+                setLoading(false);
+            }
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
     }
 
-    fetchData()
-}, [])
+    fetchData();
+}, []);
+
 
 
   return (
@@ -49,7 +63,7 @@ export default function Landing() {
                         <Menu.Button className="relative flex rounded-full bg-white text-sm ring-2 ring-white ring-opacity-20 focus:outline-none focus:ring-opacity-100">
                           <span className="absolute -inset-1.5" />
                           <span className="sr-only">Open user menu</span>
-                          <img className="h-12 w-12 rounded-full" src="/user.png" />
+                          <img className="h-12 w-12 rounded-full" src="/icon.jpg" />
                         </Menu.Button>
                       </div>
                       <Transition
@@ -103,7 +117,9 @@ export default function Landing() {
               <div className="grid grid-cols-1 gap-4 lg:col-span-2 overflow-hidden rounded-lg bg-white shadow p-6 h-full no-scrollbar">
                   <section aria-labelledby="section-1-title">
                     {/** ALBUM BEGINS HERE, CAESAR */}
-                    <Album data={rows}/>
+                    { !loading &&
+                      <Album data={rows}/>
+                    }
                   </section>
               </div>
 
@@ -111,7 +127,9 @@ export default function Landing() {
             <div className="grid grid-cols-1 gap-4lg:col-span-2 overflow-hidden rounded-lg bg-white shadow p-6 h-[75vh] no-scrollbar">
                 <section aria-labelledby="section-2-title">
                   {/** Chatbot BEGINS HERE, MARSHAL */}
-                  <Chatbot data={rows}/>
+                  { !loading &&
+                      <Chatbot data={rows}/>
+                    }
                 </section>
             </div>
           </div>
