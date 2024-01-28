@@ -3,8 +3,14 @@ import ReactPlayer from "react-player";
 
 const Album = (prop) => {
   const [currLink, setCurrLink] = useState("https://www.youtube.com/watch?v=AjWfY7SnMBI")
-  
-
+  const labelToEmoji = {
+    "family": '🏠',
+    "education": '📚',
+    "romance": '❤️',
+    "sport": '⚽',
+    "accomplishments": '🏆',
+  };
+  console.log(labelToEmoji['family'])
   return (
     
 <>
@@ -31,7 +37,10 @@ const Album = (prop) => {
               width={180} // Adjust the width to your desired size
               style={{ marginLeft: '50px', marginRight: '50px'}}
             />
-            <a href="#" onClick={() => {setCurrLink(row.link)}} className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">{row.label}</a>
+            <a href="#" onClick={() => { setCurrLink(row.link) }} className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
+              {labelToEmoji[row.label]} {row.summary}
+            </a>
+            <>{labelToEmoji[row.label]}</>
         </div>
       </>
       ))}
