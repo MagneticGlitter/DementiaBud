@@ -44,9 +44,9 @@ def face_detect():
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img = img.reshape(1, 224, 224, 3)
             prediction = model.predict(img)
-            print("Raw predictions:", prediction)
+            # print("Raw predictions:", prediction)
             classIndex = np.argmax(prediction, axis=-1)
-            print("Class index:", classIndex)
+            # print("Class index:", classIndex)
             probabilityValue = np.amax(prediction)
             if classIndex == 0 or classIndex == 1 or classIndex == 2 or classIndex == 3:
                 cv2.rectangle(imgOrignal, (x, y), (x+w, y+h), (0, 255, 0), 2)
@@ -85,6 +85,7 @@ def index():
 @app.route('/save_transcriptions', methods=['POST'])
 def save_transcriptions():
     data = request.json
+    print(data)
     transcriptions = data.get('transcriptions')
     transcriptions_string = '\n'.join(transcriptions)
 
@@ -100,36 +101,34 @@ def save_transcriptions():
         prompt="""I want you to give me a personalized description of the memory text of my life. For example, Here's a conversation: Remember when we went to the park? Yeah! The one with the big slide and swings? That's the one. We chatted about school and your friends. I told you about my funny teacher and my best friend, Sarah. Your stories always make me smile. And you said I'm the best storyteller ever! You are, indeed. Our talks make my day. Mine too, especially when we share ice cream after.  Here's it's summary: In this sweet chat, you and your child reminisce about a fun park day, sharing laughter, stories, and the joy of post-play ice cream. It's a heartwarming snapshot of your close bond.    The following is the memory text of my life:  """ + transcriptions_string)
 
     key_data = data.get('key')
+    print(key_data)
 
-    response = supabase.table('memories').select().eq(
-        'key_column', key_data).execute()
-
-    if response.status_code == 200 and response.json()['count'] > 0:
+    try:
+        response = supabase.table('memories').select().eq(
+            'key', key_data).execute()
         existing_row = response.json()['data'][0]
         video_url = 'arbitrary_link'
         existing_row['link'] = video_url
         supabase.table('memories').update(existing_row).eq(
-            'key_column', key_data).execute()
-    else:
+            'key', key_data).execute()
+    except supabase.errors.HTTPError:
         video_url = 'arbitrary_link'
         new_row = {
             'label': label,
             'summary': summary,
             'conversation': transcriptions_string,
             'link': video_url,
-            'key_column': key_data
+            'key': key_data
         }
         supabase.from_('memories').upsert(
-            [new_row], on_conflict=['key_column']).execute()
+            [new_row], on_conflict=['key']).execute()
 
     return jsonify({'video_url': video_url})
 
+    @app.route('/video_feed')
+    def video_feed():
+        return Response(face_detect(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(face_detect(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
-if __name__ == '__main__':
-    app.after_request(add_cors_headers)
-    app.run(port=4000, debug=True)
+    if __name__ == '__main__':
+        app.after_request(add_cors_headers)
+        app.run(port=4000, debug=True)
