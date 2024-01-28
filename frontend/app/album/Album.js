@@ -1,3 +1,4 @@
+
 import { Button } from "@mui/material";
 import React, { useState, useEffect } from "react";
 
@@ -45,7 +46,7 @@ const Album = (prop) => {
   </div>
   </div>
   
-      
+ 
   );
 };
 

@@ -2,12 +2,18 @@ import { useState, useEffect } from "react";
 import {botInit, botUpdate} from "./voiceflowController";
 import useSpeechRecognition from "./speech";
 
-const Chatbot = () => {
+const Chatbot = (prop) => {
+  const labelToEmoji = {
+    "family": '🏠',
+    "education": '📚',
+    "romance": '❤️',
+    "sports": '⚽',
+    "accomplishment": '🏆',
+  };
+  
   const [inputValue, setInputValue] = useState("");
   const [chatMessages, setChatMessages] = useState([]);
-  const [bgInfo, setBgInfo] = useState("I have a family of 4");     // TODO: setBgInfo from using a fetch
   const [intent, setIntent] = useState(0);
-  const [labels, setLabels] = useState([["label1", "https://www.google.ca"], ["label2", "https://www.baidu.com"], ["label3", "https://www.bing.ca"], ["label4", "https://www.google.com/search?sca_esv=d17c57237620b038&sxsrf=ACQVn0_Tn0ANt1R-D2BjqE0SdypvYxGshA:1706366538132&q=funny+pics&tbm=isch&source=lnms&sa=X&ved=2ahUKEwivnvLa5v2DAxVAnWoFHa6dB3AQ0pQJegQIDBAB&biw=1488&bih=708&dpr=1.25"]])  // TODO: setLabels from using a fetch
   const {
       text,
       startListening,
@@ -31,18 +37,16 @@ const Chatbot = () => {
 
   const initChatbot = async () => {
     // fetch for botInit
-
+    const summaryString = prop.data.map(element => element.summary).join(", ");
+    console.log(summaryString)
+    console.log("================================");
     const mssg1 = await botInit();
-    const mssg2 = await botUpdate(bgInfo)
-  
+    const mssg2 = await botUpdate(summaryString)
     setChatMessages((prevChatMessages) => [
       ...prevChatMessages,
       { type: "bot", text: mssg1 },
       { type: "bot", text: mssg2 }
     ]);
-    
-
-    // TODO: setLabels()
   };
   
   
@@ -66,28 +70,37 @@ const Chatbot = () => {
     
     if (indicator === "*"){
       setIntent(1)
-      console.log("=============")
     }
     if (indicator === "$") {
       setIntent(2)
     }
   };
 
-
+  let i = 0;
   const handleInteract = async (input) => {
     try {
       setIntent(0)
       // Send user input and get the bot's response
       const list = await botUpdate(input);
-      if (list.length > 1) {
-        const modified = list[1].replace('2', labels[0][0])
+      if (list.length == 3) {
+        const modified = list[1].replace('2', prop.data[i].summary)
+        i++;
         setChatMessages((prevChatMessages) => [
           ...prevChatMessages,
           { type: "bot", text: list[0].slice(0,-1) },
           { type: "bot", text: modified.slice(0,-1) },
           { type: "bot", text: list[2].slice(0,-1) }
         ]);
-      } else {
+      } else if (list.length == 2) {
+        const modified = list[1].replace('2', prop.data[i].summary)
+        i++;
+        setChatMessages((prevChatMessages) => [
+          ...prevChatMessages,
+          { type: "bot", text: list[0].slice(0,-1) },
+          { type: "bot", text: modified.slice(0,-1) }
+        ]);
+          
+      } else if (list.length == 1) {
         setChatMessages((prevChatMessages) => [
           ...prevChatMessages,
           { type: "bot", text: list[0].slice(0,-1) }
@@ -103,9 +116,8 @@ const Chatbot = () => {
     }
   }
 
-  const emptyButtons = () => {
-    setIntent(0)
-    botUpdate("yes")
+  const emptyButtons = async () => {
+    handleInteract("yes")
   }
 
   return (
@@ -127,25 +139,16 @@ const Chatbot = () => {
         </p>
       </div>
     ))}
-    {intent === 1 && 
-      <a href={labels[0][1]} onClick={emptyButtons} target="_blank" className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
-        {labels[0][0]}
-      </a>
-    
+    {intent === 1 && (
+      <a href={prop.data[0].link} onClick={emptyButtons} target="_blank" className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
+        {labelToEmoji[prop.data[0].label]} {prop.data[0].summary}
+      </a>)
     }
-    {intent === 2 && 
-      (<>
-        <a href={labels[1][1]} onClick={emptyButtons} target="_blank" className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
-          {labels[1][0]}
+    {intent === 2 && prop.data.map((row) => (
+        <a href={row.link} onClick={emptyButtons} target="_blank" className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
+          {labelToEmoji[row.label]} {row.summary}
         </a>
-        <a href={labels[2][1]} onClick={emptyButtons} target="_blank" className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
-          {labels[2][0]}
-        </a>
-        <a href={labels[3][1]} onClick={emptyButtons} target="_blank" className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
-          {labels[3][0]}
-        </a>
-      </>)
-    }
+      ))}
   </div>
 
   {/* Input bar and submit button */}
