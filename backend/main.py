@@ -125,10 +125,10 @@ def save_transcriptions():
 
     return jsonify({'video_url': video_url})
 
-    @app.route('/video_feed')
-    def video_feed():
-        return Response(face_detect(), mimetype='multipart/x-mixed-replace; boundary=frame')
+@app.route('/video_feed')
+def video_feed():
+    return Response(face_detect(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-    if __name__ == '__main__':
-        app.after_request(add_cors_headers)
-        app.run(port=4000, debug=True)
+if __name__ == '__main__':
+    app.after_request(add_cors_headers)
+    app.run(port=4000, debug=True)
