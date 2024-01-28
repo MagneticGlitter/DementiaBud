@@ -128,11 +128,11 @@ const Chatbot = (prop) => {
     {chatMessages.map((message, index) => (
       <div
         key={index}
-        className={`flex items-start ${message.type === "user" ? "bg-gray-300 self-end" : "bg-blue-700"} p-2 rounded-lg max-h-[900px]`}
+        className={`flex items-start ${message.type === "user" ? "bg-[#FFB6C1] self-end" : "bg-[#F08080]"} p-2 rounded-lg max-h-[900px]`}
       >
         <p
           className={`${
-            message.type === "bot" ? "text-white" : "text-black"
+            message.type === "bot" ? "text-white" : "text-white"
           } overflow-hidden break-words max-w-full`}
         >
           {message.text}
@@ -168,7 +168,7 @@ const Chatbot = (prop) => {
         id="submitButton"
         type="button"
         onClick={handleSendMessage}
-        className="bg-blue-700 text-white p-2 rounded-r-lg ml-2"
+        className="bg-[#F08080] text-white p-2 rounded-r-lg ml-2"
       >
         Submit
       </button>

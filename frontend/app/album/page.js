@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Fragment, useState, useEffect } from "react";
 import { Menu, Popover, Transition  } from "@headlessui/react";
 import Album from "./Album";
+import "./navbar.css"
+import Image from 'next/image'
 
 const { createClient } = require('@supabase/supabase-js');
 // Replace these with your actual Supabase credentials
@@ -50,13 +52,21 @@ export default function Landing() {
       // <div>Hello from landing!</div>
       <>
       <div className="min-h-full bg-gray-50">
-      <Popover as="header" className="bg-[#132143] pb-24">
+      <Popover as="header" className="pb-24">
           {({ open }) => (
             <>
-              <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-                <div className="relative flex items-center justify-center py-5 lg:justify-between">      
+              <div className='nav-bar'>
+                <div className="flex justify-center">   
+                <div className='nav-bar'>
+                  <div className="brain-nav">
+                    <Image src="/brain.png" width={100} height={100} className="brain-img"/>
+                  </div>
+                  <div className='nav-text'>
+                    <h1 className='text-4xl'>DementiaBuddy</h1>
+                  </div>
+                </div>  
                   {/* Right section on desktop */}
-                  <div className="hidden lg:ml-4 lg:flex lg:items-center lg:pr-0.5">
+                  <div className="icon">
                     {/* Profile dropdown */}
                     <Menu as="div" className="relative ml-4 flex-shrink-0">
                       <div>
@@ -94,7 +104,7 @@ export default function Landing() {
                     </Menu>
                   </div>
                 </div>
-                <div className="hidden border-t border-white border-opacity-20 py-5 lg:block">
+                <div className="hidden  py-5 lg:block">
                   <div className="grid grid-cols-3 items-center gap-8">
                     <div className="col-span-2">
                       <nav className="flex space-x-4"></nav>
@@ -108,9 +118,8 @@ export default function Landing() {
             </>
           )}
         </Popover>
-        <main className="-mt-24 pb-8">
+        <main className="-mt-24 pb-8 bg-[#FFB6C1] pt-8">
           <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
-            <h1 className="sr-only">Page title</h1>
             {/* Main 3 column grid */}
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3 lg:gap-8">
               {/* Left column */}

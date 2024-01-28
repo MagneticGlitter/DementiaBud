@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+
+import { Button } from "@mui/material";
+import React, { useState, useEffect } from "react";
+
 import ReactPlayer from "react-player";
 
 const Album = (prop) => {
@@ -29,23 +32,21 @@ const Album = (prop) => {
         {prop.data && prop.data.map((row) => (
           <div className="flex flex-col items-center" key={row.id}>
             <img
-              src={`floppy3.png`}
-              width={180}
+              src='polaroid.png'
+              width={180} // Adjust the width to your desired size
               style={{ marginLeft: '50px', marginRight: '50px'}}
             />
-            <a href="#" onClick={() => { setCurrLink(row.link) }} className="text-md rounded-full border border-blue-700 text-blue-700 p-1">
-              {labelToEmoji[row.label]} {row.summary}
-            </a>
-          </div>
+            <Button sx={{ color: "lightpink", "&:hover": {backgroundColor: "lightcoral", color: "white"}, }}>
+            <a href="#" onClick={() => {setCurrLink(row.link)}}> {labelToEmoji[row.label]} {row.summary}</a>
+            </Button>
+            </div>
         ))}
-      </div>
     </div>
   </div>
-</div>
-
-
-
-
+  </div>
+  </div>
+  
+ 
   );
 };
 
