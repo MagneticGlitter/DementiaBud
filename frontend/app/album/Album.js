@@ -1,3 +1,4 @@
+import { Button } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
 const Album = () => {
@@ -43,11 +44,13 @@ const Album = () => {
         <>
         <div className="flex flex-col items-center">
             <img
-              src={`floppy3.png`}
+              src='polaroid.png'
               width={180} // Adjust the width to your desired size
               style={{ marginLeft: '50px', marginRight: '50px'}}
             />
-            <a href="#" onClick={() => {setLink(folder.link)}} className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">{folder.label}</a>
+            <Button sx={{ color: "lightpink", "&:hover": {backgroundColor: "lightcoral", color: "white"}, }}>
+            <a href="#" onClick={() => {setLink(folder.link)}}>{folder.label}</a>
+            </Button>
         </div>
       </>
       ))}
