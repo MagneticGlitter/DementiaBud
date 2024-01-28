@@ -1,25 +1,9 @@
 import React, { useState, useEffect } from "react";
 import ReactPlayer from "react-player";
-const Album = () => {
-  const [folders, setFolders] = useState([]);
-  const [link, setLink] = useState("");
-  useEffect(() => {
-    // Fetch data or set your folder structure here
-    const fetchedFolders = [
-      { label:"Folder 1", link: "https://www.youtube.com/watch?v=paiO6M2wBqE"},
-      { label:"Folder 1", link: "https://www.youtube.com/watch?v=Et7TTfwvBFo"},
-      { label:"Folder 1", link: "www.google.com"},
-      { label:"Folder 1", link: "www.google.com"},
-      { label:"Folder 1", link: "www.google.com"},
-      { label:"Folder 1", link: "www.google.com"},
-      { label:"Folder 1", link: "www.google.com"},
-      { label:"Folder 1", link: "www.google.com"},
-      
-      // Add more folders as needed
-    ];
 
-    setFolders(fetchedFolders);
-  }, []);
+const Album = (prop) => {
+  const [currLink, setCurrLink] = useState("https://www.youtube.com/watch?v=AjWfY7SnMBI")
+  
 
   return (
     
@@ -29,7 +13,7 @@ const Album = () => {
     <div className="player-wrapper">
       <ReactPlayer
         className="react-player"
-        url={link}
+        url={currLink}
         width="600px"
         height="300px"
         controls
@@ -39,15 +23,15 @@ const Album = () => {
 
   <div className="overflow-x-auto whitespace-nowrap mt-4">
   <div className="flex p-4 flex-row">
-      {folders && folders.map((folder) => (
+      {prop.data && prop.data.map((row) => (
         <>
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center" key={row.id}>
             <img
               src={`floppy3.png`}
               width={180} // Adjust the width to your desired size
               style={{ marginLeft: '50px', marginRight: '50px'}}
             />
-            <a href="#" onClick={() => {setLink(folder.link)}} className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">{folder.label}</a>
+            <a href="#" onClick={() => {setCurrLink(row.link)}} className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">{row.label}</a>
         </div>
       </>
       ))}
