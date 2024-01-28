@@ -31,7 +31,7 @@
         let mediaRecorder;
         let chunks = [];
         let stream;
-        var supabaseVideoUrl;
+        let key = generate6DigitId();
 
         recognition.continuous = true;
         recognition.interimResults = true;  
@@ -40,6 +40,10 @@
         document.addEventListener("DOMContentLoaded", function() {
             startRecording();
         });
+
+        function generate6DigitId() {
+            return Math.floor(100000 + Math.random() * 900000);
+        }
 
         recognition.onresult = function(event) {
             var result = event.results[event.results.length - 1][0].transcript;
@@ -96,12 +100,11 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 'transcriptions': transcriptions }),
+                    body: JSON.stringify({ 'transcriptions': transcriptions, 'key': key }),
                 })
                 .then(response => response.json())
                 .then(data => {
                     console.log('Save response:', data);
-                    alert('Transcriptions saved successfully!');
                 })
                 .catch(error => console.error('Error:', error));
             } else {
@@ -127,6 +130,7 @@
 
                 const formData = new FormData();
                 formData.append('video', videoBlob);
+                formData.append('key', key);
 
                 fetch('/upload_video', {
                     method: 'POST',
@@ -135,26 +139,11 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('Upload response:', data);
-                    supabaseVideoUrl = data.video_url;
                 })
                 .catch(error => console.error('Error:', error));
 
                 chunks = [];
             };
-
-            fetch('/add_row', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({link: supabaseVideoUrl}),
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Row added response:', data);
-                alert('Row added to the database successfully!');
-            })
-            .catch(error => console.error('Error:', error));
 
             mediaRecorder.start();
             
