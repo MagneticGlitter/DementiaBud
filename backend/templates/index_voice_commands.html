@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DementiaBuddy</title>
+</head>
+<body>
+    <div class="row">
+        <div class="col-lg-8  offset-lg-2">
+            <h3 class="mt-5">Live Streaming</h3>
+            <img src="{{ url_for('video_feed') }}" width="100%">
+    </div>
+    
+    <h1>Voice-Activated Recording</h1>
+    
+    <p id="status">Status: Waiting for voice commands...</p>
+    
+    <div id="transcriptions">
+        <h2>Transcriptions</h2>
+        <ul id="transcriptionList"></ul>
+    </div>
+    <button onclick="startRecording()">Record memory</button>
+    <button id="saveButton" onclick="saveTranscriptions()">Save Transcriptions</button>
+
+    <script>
+        var recognition = new webkitSpeechRecognition() || new SpeechRecognition();
+        var isRecording = false;
+        var transcribe = false;
+        var transcriptions = [];
+        let mediaRecorder;
+        let chunks = [];
+        let stream;
+        var supabaseVideoUrl;
+
+        recognition.continuous = true;
+        recognition.interimResults = true;  
+        recognition.lang = 'en-US';
+
+        document.addEventListener("DOMContentLoaded", function() {
+            startRecording();
+        });
+
+        recognition.onresult = function(event) {
+            var result = event.results[event.results.length - 1][0].transcript;
+            document.getElementById('status').innerText = 'Status: ' + result;
+
+            if (isRecording) {
+                if (result.toLowerCase().includes('record memory')) {
+                    transcribe = true;
+                } 
+                if (transcribe) {
+                    transcriptions.push(result);
+                    displayTranscriptions();
+                }
+            }
+
+            if ((result.toLowerCase().includes('record memory') || result.toLowerCase().includes('start recording'))) {
+                startRecording();
+            } else if (result.toLowerCase().includes('stop recording')) {
+                stopRecording();
+            }
+        }
+
+        function startRecording() {
+            startRecordingVideo();
+            document.getElementById('status').innerText = 'Status: Recording...';
+            isRecording = true;
+            transcriptions = []; 
+            recognition.start();
+        }
+
+        function stopRecording() {
+            document.getElementById('status').innerText = 'Status: Recording stopped.';
+            isRecording = false;
+            recognition.stop();
+            displayTranscriptions();
+            saveTranscriptions();
+            stopRecordingVideo();
+        }
+
+        function displayTranscriptions() {
+            var transcriptionList = document.getElementById('transcriptionList');
+            transcriptionList.innerHTML = ''; 
+            transcriptions.forEach(function(transcription) {
+                var listItem = document.createElement('li');
+                listItem.innerText = transcription;
+                transcriptionList.appendChild(listItem);
+            });
+        }
+
+        function saveTranscriptions() {
+            if (transcriptions.length > 0) {
+                fetch('/save_transcriptions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 'transcriptions': transcriptions }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Save response:', data);
+                    alert('Transcriptions saved successfully!');
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert('No transcriptions to save.');
+            }
+        }
+
+        async function startRecordingVideo() {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+            mediaRecorder = new MediaRecorder(stream);
+            const videoPreview = document.getElementById('preview');
+            videoPreview.srcObject = stream;
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    chunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const videoBlob = new Blob(chunks, { type: 'video/webm' });
+
+                const formData = new FormData();
+                formData.append('video', videoBlob);
+
+                fetch('/upload_video', {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Upload response:', data);
+                    supabaseVideoUrl = data.video_url;
+                })
+                .catch(error => console.error('Error:', error));
+
+                chunks = [];
+            };
+
+            fetch('/add_row', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({link: supabaseVideoUrl}),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Row added response:', data);
+                alert('Row added to the database successfully!');
+            })
+            .catch(error => console.error('Error:', error));
+
+            mediaRecorder.start();
+            
+            document.getElementById('startRecording').style.display = 'none';
+            document.getElementById('stopRecording').style.display = 'inline';
+        }
+
+        function stopRecordingVideo() {
+            mediaRecorder.stop();
+            stream.getTracks().forEach(track => track.stop());
+            
+            document.getElementById('startRecording').style.display = 'inline';
+            document.getElementById('stopRecording').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

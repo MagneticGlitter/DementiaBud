@@ -1,104 +1,125 @@
-import face_recognition
-import cv2
+from flask import Flask, jsonify, render_template, Response, request
+import tensorflow as tf
 import numpy as np
-
-# This is a demo of running face recognition on live video from your webcam. It's a little more complicated than the
-# other example, but it includes some basic performance tweaks to make things run a lot faster:
-#   1. Process each video frame at 1/4 resolution (though still display it at full resolution)
-#   2. Only detect faces in every other frame of video.
-
-# PLEASE NOTE: This example requires OpenCV (the `cv2` library) to be installed only to read from your webcam.
-# OpenCV is *not* required to use the face_recognition library. It's only required if you want to run this
-# specific demo. If you have trouble installing it, try any of the other demos that don't require it instead.
-
-# Get a reference to webcam #0 (the default one)
-video_capture = cv2.VideoCapture(0)
-
-# Load a sample picture and learn how to recognize it.
-krish_image = face_recognition.load_image_file("Krish/krish.jpg")
-krish_face_encoding = face_recognition.face_encodings(krish_image)[0]
-
-# Load a second sample picture and learn how to recognize it.
-bradley_image = face_recognition.load_image_file("Bradley/bradley.jpg")
-bradley_face_encoding = face_recognition.face_encodings(bradley_image)[0]
-
-# Create arrays of known face encodings and their names
-known_face_encodings = [
-    krish_face_encoding,
-    bradley_face_encoding
-]
-known_face_names = [
-    "Krish",
-    "Bradley"
-]
-
-# Initialize some variables
-face_locations = []
-face_encodings = []
-face_names = []
-process_this_frame = True
-
-while True:
-    # Grab a single frame of video
-    ret, frame = video_capture.read()
-
-    # Resize frame of video to 1/4 size for faster face recognition processing
-    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-
-    # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
-    rgb_small_frame = small_frame[:, :, ::-1]
-
-    # Only process every other frame of video to save time
-    if process_this_frame:
-        # Find all the faces and face encodings in the current frame of video
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
-        face_names = []
-        for face_encoding in face_encodings:
-            # See if the face is a match for the known face(s)
-            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-            name = "Unknown"
-
-            # # If a match was found in known_face_encodings, just use the first one.
-            # if True in matches:
-            #     first_match_index = matches.index(True)
-            #     name = known_face_names[first_match_index]
-
-            # Or instead, use the known face with the smallest distance to the new face
-            face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-            best_match_index = np.argmin(face_distances)
-            if matches[best_match_index]:
-                name = known_face_names[best_match_index]
-
-            face_names.append(name)
-
-    process_this_frame = not process_this_frame
+import cv2
+from keras.models import load_model
+import numpy as np
+import cohere
+from cohere.responses.classify import Example
+import requests
 
 
-    # Display the results
-    for (top, right, bottom, left), name in zip(face_locations, face_names):
-        # Scale back up face locations since the frame we detected in was scaled to 1/4 size
-        top *= 4
-        right *= 4
-        bottom *= 4
-        left *= 4
+app = Flask(__name__)
 
-        # Draw a box around the face
-        cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+facedetect = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-        # Draw a label with a name below the face
-        cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+cap = cv2.VideoCapture(0)
+cap.set(3, 640)
+cap.set(4, 480)
+font = cv2.FONT_HERSHEY_COMPLEX
 
-    # Display the resulting image
-    cv2.imshow('Video', frame)
+model = load_model('keras_model.h5')
 
-    # Hit 'q' on the keyboard to quit!
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
 
-# Release handle to the webcam
-video_capture.release()
-cv2.destroyAllWindows()
+def get_className(classNo):
+    if classNo == 0:
+        return "Caesar"
+    elif classNo == 1:
+        return "Marshal"
+    elif classNo == 2:
+        return "Uzair"
+    elif classNo == 3:
+        return "Rajab"
+
+
+def face_detect():
+    while True:
+        sucess, imgOrignal = cap.read()
+        faces = facedetect.detectMultiScale(imgOrignal, 1.6, 7)
+        for x, y, w, h in faces:
+            crop_img = imgOrignal[y:y+h, x:x+h]
+            img = cv2.resize(crop_img, (224, 224))
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = img.reshape(1, 224, 224, 3)
+            prediction = model.predict(img)
+            print("Raw predictions:", prediction)
+            classIndex = np.argmax(prediction, axis=-1)
+            print("Class index:", classIndex)
+            probabilityValue = np.amax(prediction)
+            if classIndex == 0 or classIndex == 1 or classIndex == 2 or classIndex == 3:
+                cv2.rectangle(imgOrignal, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                cv2.rectangle(imgOrignal, (x, y-40), (x+w, y), (0, 255, 0), -2)
+                cv2.putText(imgOrignal, get_className(classIndex), (x, y-10), font,
+                            0.75, (255, 255, 255), 1, cv2.LINE_AA)
+
+            cv2.putText(imgOrignal, str(round(probabilityValue*100, 2)) +
+                        "%", (180, 75), font, 0.75, (255, 0, 0), 2, cv2.LINE_AA)
+        ret, buffer = cv2.imencode('.jpg', imgOrignal)
+        # k=cv2.waitKey(1)
+        # if k==ord('q'):
+        # 	break
+        imgOrignal = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + imgOrignal + b'\r\n')
+
+
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    return response
+
+SUPABASE_URL = "https://fjnlnhzvvoirzuuiowoh.supabase.co/"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZqbmxuaHp2dm9pcnp1dWlvd29oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYzNzUzMDgsImV4cCI6MjAyMTk1MTMwOH0.JwrXdA7OFkR-LFBFve6-wIa6gIKCJMxVo8dOwFxd68Q"
+SUPABASE_BUCKET_NAME = "memories"
+
+@app.route('/')
+def index():
+    return render_template('index_voice_commands.html')
+
+@app.route('/upload_video', methods=['POST'])
+def upload_video():
+    video_data = request.files['video']
+    
+    url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET_NAME}/videos/{video_data.filename}"
+    headers = {
+        "Content-Type": "video/mp4",  
+        "Authorization": f"Bearer {SUPABASE_ANON_KEY}",
+    }
+
+    with requests.post(url, headers=headers, files={'file': video_data}) as response:
+        if response.status_code == 200:
+            video_url = f"{SUPABASE_URL}/storage/v1/object/{SUPABASE_BUCKET_NAME}/videos/{video_data.filename}"
+            return jsonify({'video_url': video_url})
+        else:
+            return jsonify({'success': False, 'message': f'Failed to upload video. Status Code: {response.status_code}'})
+
+
+
+@app.route('/save_transcriptions', methods=['POST'])
+def save_transcriptions():
+    data = request.json
+    transcriptions = data.get('transcriptions')
+    transcriptions_string = '\n'.join(transcriptions)
+    co = cohere.Client('5ZCwzEUBljEC37UbIpFLgCXtGpMW8XiXYtCiHVX8')
+    examples=[Example("Remember when we went to the park? Yeah! The one with the big slide and swings? That's the one. We chatted about school and your friends. I told you about my funny teacher and my best friend, Sarah. Your stories always make me smile. And you said I'm the best storyteller ever! You are, indeed. Our talks make my day. Mine too, especially when we share ice cream after.  Here's it's summary: In this sweet chat, you and your child reminisce about a fun park day, sharing laughter, stories, and the joy of post-play ice cream. It's a heartwarming snapshot of your close bond.", "family"), Example("Hey, remember that crazy exam week? Late-night study sessions were practically our second home! But hey, we nailed it! That feeling when the grades came in was priceless. I called you right away, and we celebrated like there was no tomorrow.",
+                        "education"), Example("That date night under the stars was incredible. Seriously, it felt like a scene from a movie. I still remember how we couldn't stop laughing. Best night ever. Agreed. We need more of those magical moments.", "romance"), Example("That game day was insane! I couldn't sit still. Your winning play was legendary. Nachos and victory talks afterward were the perfect way to end it. Let's catch another game soon!", "sports"), Example("Hitting that goal was a journey. The late nights, the hard work—it all paid off. I'll never forget the day it happened. We celebrated like champs. Your success is well-deserved. Cheers to more milestones!", "accomplishment"), Example("Our impromptu family picnic was a blast. Despite the squished sandwiches, we laughed non-stop. Your little sister's fascination with funny-shaped clouds made it even more memorable.", "family"),
+    Example("Late-night study sessions during exam week felt like our second home. The relief and joy upon receiving the grades were priceless. We celebrated like there was no tomorrow.", "education"),
+    Example("Our date night under the stars was magical. It felt straight out of a movie scene, and we couldn't stop laughing. Best night ever. Let's create more of those enchanting moments together.", "romance"),
+    Example("Game day was insane! I couldn't sit still, and your winning play was legendary. Nachos and victory talks afterward were the perfect way to end it. Looking forward to catching another game soon!", "sports"),
+    Example("Hitting that goal was a journey of late nights and hard work. The celebration was epic, and your success is well-deserved. Cheers to more milestones and triumphs!", "accomplishment")]
+    label = co.classify(inputs=[transcriptions_string], examples=examples)
+    summary = co.generate(
+        prompt="""I want you to give me a personalized description of the memory text of my life. For example, Here's a conversation: Remember when we went to the park? Yeah! The one with the big slide and swings? That's the one. We chatted about school and your friends. I told you about my funny teacher and my best friend, Sarah. Your stories always make me smile. And you said I'm the best storyteller ever! You are, indeed. Our talks make my day. Mine too, especially when we share ice cream after.  Here's it's summary: In this sweet chat, you and your child reminisce about a fun park day, sharing laughter, stories, and the joy of post-play ice cream. It's a heartwarming snapshot of your close bond.    The following is the memory text of my life:  """ + transcriptions_string)
+    print("Received transcriptions:", transcriptions_string)
+    return jsonify({label: label, summary: summary})
+
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(face_detect(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
+if __name__ == '__main__':
+    app.after_request(add_cors_headers)
+    app.run(port=4000, debug=True)
