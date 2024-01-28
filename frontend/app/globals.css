@@ -9,14 +9,3 @@
 body {
     background-color: lightpink;
 }
-
-.main-img {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.home-button {
-    background-color: lightcoral;
-}
