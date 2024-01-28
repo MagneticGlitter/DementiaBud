@@ -43,7 +43,7 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 
 <img width="1200" alt="Screenshot 2024-01-28 at 1 42 11 AM" src="https://github.com/MagneticGlitter/DementiaBud/assets/117721602/dc2d0e2c-7a2c-4a91-9c42-f68ccf1f2b81">
 
-A screenshot displaying our Hedera-integrated Voiceflow work !
+A screenshot displaying our Voiceflow work !
 
 ## 📚 Learn and Explore 📚
 To dive deeper into DementiaBuddy, we recommend the following resources:
@@ -61,7 +61,7 @@ To dive deeper into DementiaBuddy, we recommend the following resources:
 - [Voiceflow](https://www.voiceflow.com/docs): Learn more about Voiceflow's chatbot development platform.
 
 ## 🤝 Contribute and Connect 🤝
-Gøøse is an open-source project, and we welcome your feedback and contributions. Feel free to check out our [GitHub repository](https://github.com/MagneticGlitter/DementiaBud) and join our developer community.
+DementiaBuddy is an open-source project, and we welcome your feedback and contributions. Feel free to check out our [GitHub repository](https://github.com/MagneticGlitter/DementiaBud) and join our developer community.
 
 ## ☁️ Deploy with Vercel ☁️
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
