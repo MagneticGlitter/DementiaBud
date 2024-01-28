@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import ReactPlayer from "react-player";
 
 const Album = (prop) => {
-  const [currLink, setCurrLink] = useState("https://www.youtube.com/watch?v=AjWfY7SnMBI")
+  const [currLink, setCurrLink] = useState("./A_black_image.jpg.webp")
   const labelToEmoji = {
     "family": '🏠',
     "education": '📚',
@@ -12,9 +12,8 @@ const Album = (prop) => {
   };
   return (
     
-<>
+<div>
   <div style={{ overflowX: 'hidden' }}>
-    {/* Video Player */}
     <div className="player-wrapper">
       <ReactPlayer
         className="react-player"
@@ -25,29 +24,25 @@ const Album = (prop) => {
       />
     </div>
 
-
-  <div className="overflow-x-auto whitespace-nowrap mt-4">
-  <div className="flex p-4 flex-row">
-      {prop.data && prop.data.map((row) => (
-        <>
-        <div className="flex flex-col items-center" key={row.id}>
+    <div className="overflow-x-auto whitespace-nowrap mt-4">
+      <div className="flex p-4 flex-row">
+        {prop.data && prop.data.map((row) => (
+          <div className="flex flex-col items-center" key={row.id}>
             <img
               src={`floppy3.png`}
-              width={180} // Adjust the width to your desired size
+              width={180}
               style={{ marginLeft: '50px', marginRight: '50px'}}
             />
             <a href="#" onClick={() => { setCurrLink(row.link) }} className="text-md rounded-full border border-blue-700 text-blue-700 p-1">
               {labelToEmoji[row.label]} {row.summary}
             </a>
-        </div>
-      </>
-      ))}
-      
+          </div>
+        ))}
+      </div>
+    </div>
   </div>
 </div>
 
-  </div>
-</>
 
 
 
