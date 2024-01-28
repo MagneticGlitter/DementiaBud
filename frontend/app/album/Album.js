@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ReactPlayer from "react-player";
 
 const Album = (prop) => {
@@ -7,10 +7,9 @@ const Album = (prop) => {
     "family": '🏠',
     "education": '📚',
     "romance": '❤️',
-    "sport": '⚽',
-    "accomplishments": '🏆',
+    "sports": '⚽',
+    "accomplishment": '🏆',
   };
-  console.log(labelToEmoji['family'])
   return (
     
 <>
@@ -37,10 +36,9 @@ const Album = (prop) => {
               width={180} // Adjust the width to your desired size
               style={{ marginLeft: '50px', marginRight: '50px'}}
             />
-            <a href="#" onClick={() => { setCurrLink(row.link) }} className="text-xs rounded-full border border-blue-700 text-blue-700 p-1">
+            <a href="#" onClick={() => { setCurrLink(row.link) }} className="text-md rounded-full border border-blue-700 text-blue-700 p-1">
               {labelToEmoji[row.label]} {row.summary}
             </a>
-            <>{labelToEmoji[row.label]}</>
         </div>
       </>
       ))}

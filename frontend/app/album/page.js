@@ -24,7 +24,6 @@ export default function Landing() {
             console.log(error)
         }
         if (data){
-            console.log(data)
             setRows(data)
         }
     }
