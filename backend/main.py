@@ -76,6 +76,7 @@ SUPABASE_BUCKET_NAME = "memories"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+
 @app.route('/')
 def index():
     return render_template('index_voice_commands.html')
